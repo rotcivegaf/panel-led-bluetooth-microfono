@@ -372,22 +372,6 @@ void Fire(int Cooling, int Sparking, int SpeedDelay) {
   delay(SpeedDelay);
 }
 
-void setPixelHeatColor (int Pixel, byte temperature) {
-  byte t192 = round((temperature/255.0)*191);
-  byte heatramp = t192 & 0x3F; // 0..63
-  heatramp <<= 2; // scale up to 0..252
-
-  if( t192 > 0x80) {                     // hottest
-    setPixel(Pixel, 255, 255, heatramp);
-  } else{
-    if( t192 > 0x40 ) {             // middle
-      setPixel(Pixel, 255, heatramp, 0);
-    } else {                               // coolest
-      setPixel(Pixel, heatramp, 0, 0);
-    }
-  }
-}
-
 void rainbow(uint8_t wait) {
   uint16_t i, j;
 
@@ -436,13 +420,22 @@ void Colorful() {
   LEDS.show();
 } // loop()
 
-void fillnoise8() {
-  for(int i = 0; i < N_PIXELS; i++) {
-    uint8_t index = inoise8(i*scale, dist+i*scale) % 255;
-    leds[i] = ColorFromPalette(currentPalette, index, 255, LINEARBLEND);
+//help functions
+void setPixelHeatColor (int Pixel, byte temperature) {
+  byte t192 = round((temperature/255.0)*191);
+  byte heatramp = t192 & 0x3F; // 0..63
+  heatramp <<= 2; // scale up to 0..252
+
+  if( t192 > 0x80) {                     // hottest
+    setPixel(Pixel, 255, 255, heatramp);
+  } else{
+    if( t192 > 0x40 ) {             // middle
+      setPixel(Pixel, 255, heatramp, 0);
+    } else {                               // coolest
+      setPixel(Pixel, heatramp, 0, 0);
+    }
   }
-  dist += beatsin8(10,1, 4);
-} // fillnoise8()
+}
 //Used to draw a line between two points of a given color
 void drawLine(uint8_t from, uint8_t to, uint32_t c) {
   uint8_t fromTemp;
@@ -457,6 +450,14 @@ void drawLine(uint8_t from, uint8_t to, uint32_t c) {
 }
 // Input a value 0 to 255 to get a color value.
 // The colours are a transition r - g - b - back to r.
+void fillnoise8() {
+  for(int i = 0; i < N_PIXELS; i++) {
+    uint8_t index = inoise8(i*scale, dist+i*scale) % 255;
+    leds[i] = ColorFromPalette(currentPalette, index, 255, LINEARBLEND);
+  }
+  dist += beatsin8(10,1, 4);
+} // fillnoise8()
+
 uint32_t Wheel(byte WheelPos) {
   if(WheelPos < 85) {
     return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
